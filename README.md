@@ -33,18 +33,130 @@ Now we can start setting up a microbiome heritability analysis
 ## Transform microbiome data
 
 The script is rather case-specific, especially because the categorical variables should be handled carefully.
-The script does a few things:
+In general, it should prepare a few elements
 
-    1) Reads in the phyloseq object
-    2) Filters and transforms the microbiome data
+## Load and transform microbiome data
+
+```
+devtools::install_github("g-antonello/gautils")
+library(gautils)
+
+physeq <- readRDS("path/to/phyloseq/physeq.Rds")
+physeq.transf <- physeq %>%
+	# you can filter out rare taxa (prevalence below 20%, arbitrarily), because the distributions will look bad anyway and the model's estimates won't be reliable
+	core(detection = 1, prevalence = 0.2) %>%
+	phy_transform(physeq, "IRN")
+
+work.directory <- "path/of/project"
+```
 
 ## Handle covariates
 
+In particular, categorical variables should be handled carefully. NOTE: NAs are best coded as empty fields. I think you can use NA too, but be it's at your own risk
+```
+physeq.transf <- physeq.transf %>%
+    mutate_sample_data(
+
+	age.rounded = round(age, 0),
+
+        income_groups = as.numeric(income), # assuming that for example you have an ordered factor like c("< 20k", "20-50 k", "50-100k", "> 100k")
+
+	smoking = case_when(smoking %in% c("Never", "Former") ~ 0,
+		            smoking == "Current", 1,
+        TRUE ~ ""
+	)
+    ) %>%
+    
+    select_sample_data(id, age.rounded, income_groups, smoking)
+
+```
+This makes you keep only the covariates you want to include in the dataset, nothing more
+
 ## Write phenotypes file in the location
+
+```
+phy_OtuMetaTable(physeq.transf) %>%
+	write.csv(file.path(work.directory, "phenotypes.csv"), quote = F)
+```
 
 ## Copy the pedigree file in the location
 
+```
+file.copy("where/is/the/pedigree.ped", file.path(working.directory, "pedigree.csv"))
+```
+The pedigree format is important! It should be structured as follows:
+
+id	fa	mo	sex	
+id1	id2	id3	1
+id4	id5	id6	2
+...			1
+...			2
+
+id is the individual's unique identifier, fa is the father, mo is the mother, sex must be coded as `males = 1`. `females = 2`
+
+Additionally, one extra column, named `hhid` or `HHID` can be added to include the household partitioning to the moded. They can be household numbers, but I prefer to put a "h" before each house code, to be sure SOLAR encodes them as non-numeric (but it's superfluous I think)
+NB: this is tab-delimited, but the documentation states that comma-delimited is the suggested format.
+
 ## write .tcl instruction files
+
+This step is time-consuming, so make sure you automate it:
+
+```
+traits <- taxa_names(physeq.transf)
+covariates <- sample_variables(physeq.transf) %>% .[!grepl("id", ., fixed = T)]
+
+for (trait in traits){
+  # create directory  
+  writing.dir <- file.path(working.dir, trait)
+  dir.create(writing.dir, showWarnings = F)
+  
+  # write tcl file
+  cat(paste("proc", trait, "{} {"), 
+      paste("\tload", "pedigree", file.path(working.dir, "pedigree.csv")),
+      paste("\tload", "phenotypes", file.path(working.dir,"phenotypes.csv")),
+      "\tmodel new",
+      paste("\ttrait", trait),
+      paste("\tcovariates", paste(covariates, collapse = " "), collapse = " "),
+      file = file.path(writing.dir, "heritability.tcl")),
+	
+ # if you want the household model, uncomment the next line
+      #"\thouse", 
+      "\tpolygenic",
+      "}",
+      sep = "\n",
+      file = file.path(writing.dir, "heritability.tcl")
+      )
+  
+  cat(
+    "#!/bin/bash",
+    paste("cd", file.path(working.dir, trait)),
+    paste("solar", trait), 
+    sep = "\n",
+      file = file.path(writing.dir, "solar.sh")
+    )
+
+  cat("bash", file.path(writing.dir, "solar.sh"), "\n", sep = " ", append = T, file = file.path(working.dir, "run_solar_all_array.txt")
+      )
+}
+
+```
+
+# Run all jobs in parallel from the command line (example with slurm)
+
+```
+cd <working.dir>
+cat run_solar_all_array.txt | sarrayscript -c1 --mem-per-cpu=4G -pslow
+```
+
+each run takes 1-5 h depending on the goodness of the convergence, allocate jobs in the queues accordingly, if you have a queuing system with maximum time 
+Also, by experience, for > 1k individuals it's best to allocate 4G per job, to load everything in memory. If you use less, your job may be killed. 1 thread per job is mandatory, because SOLAR doesn't support multithreading
 
 # Retrieve results
 
+Once results are obtained, SOLAR will write some objects in the `working.directory/traitX/traitX/polygenic.out` file.
+To retrieve all at once, I designed a function that you can use after installing my R package, `gautils`
+
+```
+results.df <- get_SOLAR_results(working.directory, prefix = "")
+```
+the prefix parameter is useful if you put some prefix to taxa names, to tell them apart from the covariates. In this example I didn't do it, so I changed the default "x__" to "".
