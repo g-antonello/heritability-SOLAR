@@ -25,8 +25,8 @@ Now we can start setting up a microbiome heritability analysis
 
 # IMPORTANT NOTICE on data structure
 
-	* SOLAR internally uses Linear Mixed Models with a variance partitioning approach (https://www.frontiersin.org/articles/10.3389/fninf.2019.00016/full). It is highly sensitive to non-normality, especially bimodality. Many people use Centered-Log Ratios transformations, but that tends to generate Bimodal distributions. 
-	* Covariates should be all encoded as numerical/integers, including categorical data. Point estimates won't be highly affected, but 	
+-  SOLAR internally uses Linear Mixed Models with a variance partitioning approach (https://www.frontiersin.org/articles/10.3389/fninf.2019.00016/full). It is highly sensitive to non-normality, especially bimodality. Many people use Centered-Log Ratios transformations, but that tends to generate Bimodal distributions. 
+-  Covariates should be all encoded as numerical/integers, including categorical data. Point estimates won't be highly affected, but 	
 
 # Set up a run
 
@@ -47,7 +47,8 @@ physeq.transf <- physeq %>%
 	core(detection = 1, prevalence = 0.2) %>%
 	phy_transform(physeq, "IRN")
 
-work.directory <- "path/of/project"
+work.directory <- "absolute/path/to/project"
+dir.create(work.directory, recursive = T, showWarnings = FALSE)
 ```
 
 ## Handle covariates
