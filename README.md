@@ -160,5 +160,7 @@ To retrieve all at once, I designed a function that you can use after installing
 
 ```
 results.df <- get_SOLAR_results(working.directory, prefix = "")
+# this next function is also useful to quickly look at the overall results. it generates a kable object
+SOLAR_results_kbl(results.df, highligh_significant = 0.05)
 ```
 the prefix parameter is useful if you put some prefix to taxa names, to tell them apart from the covariates. In this example I didn't do it, so I changed the default "x__" to "".
