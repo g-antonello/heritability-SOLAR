@@ -86,13 +86,15 @@ file.copy("where/is/the/pedigree.ped", file.path(working.directory, "pedigree.cs
 ```
 The pedigree format is important! It should be structured as follows:
 
+```
 id	fa	mo	sex	
 id1	id2	id3	1
 id4	id5	id6	2
 ...			1
 ...			2
+```
 
-id is the individual's unique identifier, fa is the father, mo is the mother, sex must be coded as `males = 1`. `females = 2`
+`id` is the individual's unique identifier, fa is the father, mo is the mother, sex must be coded as `males = 1`. `females = 2`
 
 Additionally, one extra column, named `hhid` or `HHID` can be added to include the household partitioning to the moded. They can be household numbers, but I prefer to put a "h" before each house code, to be sure SOLAR encodes them as non-numeric (but it's superfluous I think)
 NB: this is tab-delimited, but the documentation states that comma-delimited is the suggested format.
