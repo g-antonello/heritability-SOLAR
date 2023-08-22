@@ -4,7 +4,7 @@ I have contributed to that, plus I am providing a few utility functions to quick
 
 # Download and compile SOLAR
 
-The software was previously available at several locations. The latest one was http://solar-eclipse-genetics.org/ but I think it got discontinued in the summer of 2023. This is the information I have in my SOLAR build:
+The software was previously available at several locations. The latest one was http://solar-eclipse-genetics.org/. Follow their instuctions on how to compile it. Once it is compiled, you should be able to start solar by typing `solar` on the command line. When I type `solar` in my command line, this is the information I see:
 
 ```
 SOLAR Eclipse version 8.5.1 (beta), last updated on July 31, 2020
@@ -19,13 +19,13 @@ The software development is supported by NIH grant RO1EB015611
 from The National Institute for Biomedical Imaging and Bioengineering.
 Enter cite to see how to cite this software
 ```
-Follow their instuctions on how to compile it. Once it is compiled, you should be able to start solar by typing `solar` on the command line
+If you need to run one single trait, the interactive interface works just fine. The following is if you are testing a number of traits at the same time, which requires some degree of automation.
 
 Now we can start setting up a microbiome heritability analysis
 
 # IMPORTANT NOTICE on data structure
 
--  SOLAR internally uses Linear Mixed Models with a variance partitioning approach (https://www.frontiersin.org/articles/10.3389/fninf.2019.00016/full). It is highly sensitive to non-normality, especially bimodality. Many people use Centered-Log Ratios transformations, but that tends to generate Bimodal distributions. 
+-  SOLAR internally uses Linear Mixed Models with a variance partitioning approach (https://www.frontiersin.org/articles/10.3389/fninf.2019.00016/full). It is highly sensitive to non-normality, especially bimodality. Many people use Centered-Log Ratios transformations, but that tends to generate Bimodal distributions. My choice is to go big or go home, with Inverse Rank Normal transformation.
 -  Covariates should be all encoded as numerical/integers, including categorical data. Point estimates won't be highly affected, but 	
 
 # Set up a run
