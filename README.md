@@ -143,6 +143,21 @@ for (trait in traits){
 }
 
 ```
+An example of a .tcl command is the following. Keep in mind that the order of the commands is important for SOLAR
+
+```
+user$ cat trait.x/heritability.tcl
+
+proc x__ASV1 {} {
+        load pedigree /home/gantonello/CHRISMB/PAPER_DRAFTS/saliva_geography_genetics/results/heritability/SOLAR/run4//chrisDataPedigree.ped
+        load phenotypes /home/gantonello/CHRISMB/PAPER_DRAFTS/saliva_geography_genetics/results/heritability/SOLAR/run4//phenotypes.csv
+        model new
+        trait x__ASV1
+        covariates x0_sex x0_ager smoking.binary x0oh01
+        house
+        polygenic
+}
+```
 
 # Run all jobs in parallel from the command line (example with slurm)
 
